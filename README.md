@@ -1,6 +1,6 @@
 # IMAS analytics
 
-A compilation of MATLAB functions that were use to apply, analyse and visualise Image Matching by Affine Simulation (**IMAS**) methods based on available state-of-the-art Scale Invariant Image Matching (**SIIM**) methods.
+A compilation of MATLAB functions that were used to apply, analyse and visualise Image Matching by Affine Simulation (**IMAS**) methods based on available state-of-the-art Scale Invariant Image Matching (**SIIM**) methods.
 
 These functions were conceived to analyse results from the following articles:
 - [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
@@ -9,29 +9,30 @@ These functions were conceived to analyse results from the following articles:
 
 ## Getting Started
 
-Either a working IMAS code should be available in the IMAS_cpp folder or either a working executable should be available in siim-matcher folder. These functions were intended to be used with the first option but you may do small modifications to get them working with the second one. Normally, the first time that you will run your any function that requires compilation through MEX will be compiled automatically and hopefully you won't need go into details.
+The first requirement is a working IMAS C++ code should be available in the folder "IMAS_cpp" or, optionally, a working executable in the folder "siim-matcher". All functions were intended to be used with the first option (C++ code) but you may do small modifications to get them working with the second one. Normally, the first time that you run any function that requires compilation through MEX will be compiled automatically and hopefully you won't need go into details.
 
 ### Prerequisites
 
-If you want to use the USAC package you'll need to install some libraries first. For example, on ubuntu you should do something like:
+If you want to use the [USAC](http://www.cs.unc.edu/~rraguram/usac/) algorithm you'll need to install some libraries first. For example, on ubuntu you should do something like:
 ```bash
 sudo apt-get update
 sudo apt-get install libblas-dev liblapack-dev libconfig-dev libconfig++-dev
 ```
+The fact of using USAC is controlled by a compilation variable inside perform_IMAS.m called `USAC`.
 
 Also, if you want to use local descriptors provided by OPENCV then you need to download and compile opencv v3.2.0 and opencv_contrib v3.2.0. Then modify the function `perform_IMAS.m` so as paths to folder libraries and modules do follow the proper path.
 
 ## Running, Visualising and Analysing examples
 
-#### Force to re-compile perform_IMAS
-If you have modified or updated the IMAS_cpp folder, you may want to compile and execute in a single call setting the compile option to true.
+### Force to re-compile perform_IMAS
+If you have modified some files in the IMAS_cpp folder, you may want to compile and execute in a single call setting the compile option to true.
 ```matlab
-opts_IMAS.compile = false;
+opts_IMAS.compile = true;
 data_matches = perform_IMAS(im1,im2,opts_IMAS);
 ```
 
-#### Sanity check of found formulas for disks boundaries in [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
-Every random C computed in the following code must lay in the boundary disk.
+### Sanity check of found formulas for disks boundaries in [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
+Let A be a fixed element of the space of tilts `$A=T_4 R_{\frac{pi}{4}}$`. Every random C `$C=T_2 R_\theta$` applied to A, i.e. C*A must lie in the boundary disk of center A and radius 2. The decomposition of C*A is achieved numerically through the SVD decomposition and independent of our formulas.
 
 ```matlab
 optionsdraw1.drawtitle = false;
@@ -55,11 +56,11 @@ plot(log(t_sim).*cos(theta_sim),log(t_sim).*sin(theta_sim),'.b','MarkerSize',12)
 ```
 
 #### Numerical composition of elements in the space of tilts
-The following code shows what it seems to be a cyclic Group in the Space of tilts. It uses the function `affine_decomp` and `draw_ball_pol`.
+The following code shows what it seems to be a cyclic Group in the Space of tilts. The generator of the group in this case is `$T_2 R_{\frac{pi}{7}}$`.
 
 ```matlab
 t = 2;
-theta = pi/7; % pi/7; et  pi/8;
+theta = pi/7;
 
 opts_comp.human_output = true;
 opts_comp.epsilon = 10^(-10);
@@ -91,18 +92,19 @@ figure;
 
 
 #### FAIR-SURF example
+
 First, load two gray images into `im1` and `im2`. For example, do
 ```matlab
 im1 = double(imread('./image_BD/adam1.png'));
 im2 = double(imread('./image_BD/adam2.png'));
 ```
 
-Then get the exact covering proposed for FAIR-SURF by typing:
+Then get the exact covering proposed for FAIR-SURF by typing,
 ```matlab
 [ tvec, psicell, radius, region ] = get_literature_covering('FAIR-SURF fixed tilts covering');
 ```
 
-Or, in general, if you want to test a near optimal covering you could type instead
+or, in general, if you want to test a near optimal covering you could type instead,
 ```matlab
 radius = 1.6;
 [ tvec, psicell, region ] = get_feasible_covering( radius );
