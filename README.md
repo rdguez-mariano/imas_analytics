@@ -18,7 +18,7 @@ If you want to use the [USAC](http://www.cs.unc.edu/~rraguram/usac/) algorithm y
 sudo apt-get update
 sudo apt-get install libblas-dev liblapack-dev libconfig-dev libconfig++-dev
 ```
-The fact of using USAC is controlled by a compilation variable inside perform_IMAS.m called `USAC`.
+The fact of using USAC is controlled by a compilation variable inside `perform_IMAS.m` called `USAC`.
 
 Also, if you want to use local descriptors provided by OPENCV then you need to download and compile opencv v3.2.0 and opencv_contrib v3.2.0. Then modify the function `perform_IMAS.m` so as paths to folder libraries and modules do follow the proper path.
 
@@ -55,7 +55,7 @@ opts_comp.epsilon = 10^(-10);
 plot(log(t_sim).*cos(theta_sim),log(t_sim).*sin(theta_sim),'.b','MarkerSize',12);
 ```
 
-#### Numerical composition of elements in the space of tilts
+### Numerical composition of elements in the space of tilts
 The following code shows what it seems to be a cyclic Group in the Space of tilts. The generator of the group in this case is `$T_2 R_{\frac{pi}{7}}$`.
 
 ```matlab
@@ -91,7 +91,7 @@ figure;
 ```
 
 
-#### FAIR-SURF example
+### FAIR-SURF example
 
 First, load two gray images into `im1` and `im2`. For example, do
 ```matlab
@@ -158,7 +158,7 @@ plot_IMAS_zenith( data_matches, opts_zenith );
 ```
 
 
-#### Tilt tolerance test applied in [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
+### Tilt tolerance test applied in [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
 This test is based on the assumption that ORSA Homography never fails in two ways: first, if it exists an underlying homography that explains the matches then ORSA will find it; and if ORSA tells that an homography explains the matches then that homography is truly the underlying one. Also, another assumption is that planes related by the underlying homography are not composed of repetitive structures.
 
 [See this article on HAL for more details](https://hal.archives-ouvertes.fr/hal-01589522)
@@ -176,7 +176,7 @@ figure;
 title(['Transition Tilt Tolerance t_{max} = ' num2str(RADIUS) ' )']);
 ```
 
-#### Tilt tolerance test with repetitive structures applied in [ICIP article](https://rdguez-mariano.github.io/pages/imas)
+### Tilt tolerance test with repetitive structures applied in [ICIP article](https://rdguez-mariano.github.io/pages/imas)
 
 This test is based on the assumption that repetitive structures are present on both images. The goal is to keep track on the number and ratio of true matches.
 
