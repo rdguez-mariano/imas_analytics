@@ -3,9 +3,9 @@
 A compilation of MATLAB functions that were used to apply, analyse and visualise Image Matching by Affine Simulation (**IMAS**) methods based on available state-of-the-art Scale Invariant Image Matching (**SIIM**) methods.
 
 These functions were conceived to analyse results from the following articles:
-- [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
-- [Fast affine invariant image matching](https://rdguez-mariano.github.io/pages/hyperdescriptors)
-- [Affine invariant image comparison under repetitive structures](https://rdguez-mariano.github.io/pages/acdesc)
+- [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas) - SIIMS
+- [Fast affine invariant image matching](https://rdguez-mariano.github.io/pages/hyperdescriptors) - IPOL
+- [Affine invariant image comparison under repetitive structures](https://rdguez-mariano.github.io/pages/acdesc) - ICIP
 
 ## Getting Started
 
@@ -22,15 +22,15 @@ The fact of using USAC is controlled by a compilation variable inside **"perform
 
 Also, if you want to use local descriptors provided by OPENCV then you need to download and compile opencv v3.2.0 and opencv_contrib v3.2.0. Then modify the function **"perform_IMAS.m"** so as paths to folder libraries and modules do follow the proper path.
 
-## Computing near optimal coverings
-Inside the folder **"opt_covering"** you can find the C++ code for finding near optimal coverings based on radius (initial visibility) and the region to cover. This code doesn't have any documentation available yet but there exist a pseudo-code that has been published in IPOL [(See its web page)](/pages/hyperdescriptors).
+## Computing near optimal coverings as in the [IPOL article](https://rdguez-mariano.github.io/pages/hyperdescriptors)
+Inside the folder **"opt_covering"** you can find the C++ code for finding near optimal coverings based on radius (initial visibility) and the region to cover. This code doesn't have any documentation available yet but there exist a pseudo-code that has been published in IPOL [(See its web page)](https://rdguez-mariano.github.io/pages/hyperdescriptors).
 ### Getting started
 Compilation in linux :
 ```bash
 cd opt_covering && mkdir -p build && cd build && cmake .. && make
 ```
 If you have problems to compile with the png library please set the `PNG` variable to OFF in the **"CMakeLists.txt"**.
-## Running example
+### Running example
 Executing the program is very simple, the following example in bash is clear enough:
  ```bash
  r=1.6           # radius of disks ( 1 <= r < Inf )
@@ -60,8 +60,8 @@ opts_IMAS.compile = true;
 data_matches = perform_IMAS(im1,im2,opts_IMAS);
 ```
 
-### Sanity check of found formulas for disks boundaries in [Covering the Space of Tilts](https://rdguez-mariano.github.io/pages/imas)
-Let A be a fixed element of the space of tilts `$A=T_4 R_{\frac{pi}{4}}$`. Every random C `$C=T_2 R_\theta$` applied to A, i.e. C*A must lie in the boundary disk of center A and radius 2. The decomposition of C*A is achieved numerically through the SVD decomposition and independent of our formulas.
+### Sanity check of found formulas for disks boundaries in the [SIIMS article](https://rdguez-mariano.github.io/pages/imas)
+Let A be a fixed element of the space of tilts `$ A = T_4 R_{\frac{pi}{4}} $`. Every random C (`$ C = T_2 R_\theta $`) applied to A (i.e. CA) must lie in the boundary of the disk of center A and radius 2. The decomposition of CA is achieved numerically through the SVD decomposition and independent of our formulas.
 
 ```matlab
 optionsdraw1.drawtitle = false;
