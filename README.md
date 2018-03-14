@@ -115,8 +115,12 @@ optionsdraw2.interactive = false;
 optionsdraw2.draw_circle_eachtilt = false;
 optionsdraw2.draw_regions = true;
 optionsdraw2.draw_regions_tilt = 4*sqrt(2);
+
 figure;
 [tvec1,psicell1] = draw_ball_pol(tvec,psicell,log(sqrt(2)),optionsdraw2);
+
+figure;
+draw_ball3d(tvec,psicell,log(sqrt(2)),optionsdraw2);
 ```
 
 
@@ -348,6 +352,15 @@ plot(tvec,matrixgood(:,4),'-ok');
 title('Good')
 ```
 
+### Similarity test
+
+```matlab
+im1 = double(imread('./image_BD/adam1.png'));
+im2 = double(imread('./image_BD/enami.png'));
+
+
+similarity_test( im1, im2, 100, 3, 2, 45 )
+```
 
 ## Author
 
