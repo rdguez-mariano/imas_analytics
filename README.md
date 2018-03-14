@@ -227,7 +227,7 @@ im3 = double(imread('./image_BD/adam1.png'));
 
 matrixgood = [];
 matrixratio = [];
-tvec = 1.2:0.1:2.4;
+tvec = 1:0.1:3;
 for t=tvec
     ratiovec = 0;
     goodvec = 0;
