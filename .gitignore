@@ -2,3 +2,4 @@ IMAS_cpp
 siim-matcher
 *.mex*
 *.txt.user*
+/textures/*

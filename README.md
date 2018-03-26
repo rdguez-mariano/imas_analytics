@@ -9,7 +9,7 @@ These functions were conceived to analyse results from the following articles:
 
 ## Getting Started
 
-The first requirement is a working IMAS C++ code should be available in the folder "IMAS_cpp" or, optionally, a working executable in the folder "siim-matcher". All functions were intended to be used with the first option (C++ code) but you may do small modifications to get them working with the second one. Normally, the first time that you run any function that requires compilation through MEX will be compiled automatically and hopefully you won't need go into details.
+The first requirement is that a working IMAS C++ code should be available in the folder "IMAS_cpp" or, optionally, a working executable in the folder "siim-matcher". All functions were intended to be used with the first option (C++ code) but you may do small modifications to get them working with the second one. Normally, the first time that you run any function that requires compilation through MEX will be compiled automatically and hopefully you won't need go into details.
 
 ### Prerequisites
 
