@@ -1,4 +1,4 @@
-function [ data_stats ] = get_sift_stats( im1)
+function [ kp_stats,similarities,W,vec_representants ] = get_sift_stats( im1,im_ac,matchratio)
 %PERFORM_SIFT Summary of this function goes here
 
 % NOTES:
@@ -8,7 +8,7 @@ function [ data_stats ] = get_sift_stats( im1)
 ALWAYS_COMPILE = true;
 
 
-setenv('OMP_NUM_THREADS', '4'); % use 4 threads for computing
+setenv('OMP_NUM_THREADS', '8'); % use 4 threads for computing
 currentfolder = pwd; % this saves the current folder
 cd ./sift/;
 if ( (exist('get_sift_stats_mex')==0) || ALWAYS_COMPILE )
@@ -29,7 +29,7 @@ end
 
 % Calling the Mex-Function
 if ( exist('get_sift_stats_mex')==3)
-    data_stats = get_sift_stats_mex(double(im1'));
+    [kp_stats,similarities,W,vec_representants] = get_sift_stats_mex(double(im1'),double(im_ac'),matchratio);
     cd(currentfolder); % go back to the main directory
 else
     error('Error: The Mex-Function ASIFT_matlab was not compiled.')
