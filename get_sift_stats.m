@@ -1,4 +1,4 @@
-function [ kp_stats,similarities,W,vec_representants ] = get_sift_stats( im1,im_ac,matchratio)
+function [ kp_stats,similarities,W,vec_representants ] = get_sift_stats( im1,im_ac,matchratio,rho_hyper_descriptor)
 %PERFORM_SIFT Summary of this function goes here
 
 % NOTES:
@@ -29,7 +29,7 @@ end
 
 % Calling the Mex-Function
 if ( exist('get_sift_stats_mex')==3)
-    [kp_stats,similarities,W,vec_representants] = get_sift_stats_mex(double(im1'),double(im_ac'),matchratio);
+    [kp_stats,similarities,W,vec_representants] = get_sift_stats_mex(double(im1'),double(im_ac'),matchratio,rho_hyper_descriptor);
     cd(currentfolder); % go back to the main directory
 else
     error('Error: The Mex-Function ASIFT_matlab was not compiled.')

@@ -74,8 +74,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
     }
     std::cout<<"--> Using "<<nthreads<<" threads out of "<<maxthreads<<" <--"<<std::endl;
 
-    double matchratio = mxGetScalar(prhs[2]);
-    const int thr_same_kp = 4;
+    double matchratio = (double) mxGetScalar(prhs[2]);
+    int thr_same_kp = (int) mxGetScalar(prhs[3]);
+    
     cv::Mat queryImg,acImg;
     floatarray2opencvimage(ipixels1,queryImg,w1,h1);
     floatarray2opencvimage(ipixelsac,acImg,wac,hac);

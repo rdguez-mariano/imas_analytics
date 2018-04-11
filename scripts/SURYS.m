@@ -12,7 +12,7 @@ for f=1:1%length(listing)
     end
     [m,n]= size(im1);
 
-    [data,simi,W,vec] = get_sift_stats( im1,im_ac,0.6);
+    [data,simi,W,vec] = get_sift_stats( im1,im_ac,0.2, 3);
 
     datax = data(1,:);
     datay = data(2,:);
@@ -61,9 +61,19 @@ for f=1:1%length(listing)
         end
     end
     
-groups = get_sift_groups(W,vec);
+[ groups, Y,newW ] = get_sift_groups(W,vec,'unn');
 
-figure;plot_matches_in_oneimage(im1,simi([1 2 3:7 9 10 11:15],:));
+for i=1:length(groups)
+    thisdata = groups{i};
+    if(length(thisdata(1,:))==1)
+        continue;
+    end
+    h=figure;
+    imshow(im1/255);hold on;
+    plot(thisdata(1,:),thisdata(2,:),'o','MarkerSize',10,'MarkerEdgeColor','red','MarkerFaceColor',[1 .6 .6])
+    pause
+    close(h);    
+end
 
 %     drawnow;
 %     set(get(handle(gcf),'JavaFrame'),'Maximized',1);
