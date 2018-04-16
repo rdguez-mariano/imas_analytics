@@ -12,7 +12,7 @@ for f=1:1%length(listing)
     end
     [m,n]= size(im1);
 
-    [data,simi,W,vec] = get_sift_stats( im1,im_ac,0.2, 3);
+    [data,simi,W,vec] = get_sift_stats( im1,im_ac,0.6, 4);
 
     datax = data(1,:);
     datay = data(2,:);
@@ -63,16 +63,33 @@ for f=1:1%length(listing)
     
 [ groups, Y,newW ] = get_sift_groups(W,vec,'unn');
 
+pause(1)
+classes = unique(Y);
 for i=1:length(groups)
     thisdata = groups{i};
     if(length(thisdata(1,:))==1)
         continue;
     end
-    h=figure;
-    imshow(im1/255);hold on;
-    plot(thisdata(1,:),thisdata(2,:),'o','MarkerSize',10,'MarkerEdgeColor','red','MarkerFaceColor',[1 .6 .6])
-    pause
-    close(h);    
+    thisW = W(Y == classes(i),Y == classes(i))
+    ext_links = W(Y ~= classes(i),Y == classes(i));
+    ext_links = sum(sum(ext_links>0));
+    
+    if (ext_links>0)
+        h=figure;
+        imshow(im1/255);hold on;
+        plot(thisdata(1,:),thisdata(2,:),'o','MarkerSize',10,'MarkerEdgeColor','red','MarkerFaceColor',[1 .6 .6])
+        title([num2str(ext_links) ' external links'])
+        for x=1:length(thisdata(1,:))
+            for y=1:length(thisdata(1,:))
+                if (thisW(x,y)>0)
+                    line(thisdata(1,[x y]),thisdata(2,[x y]),'LineWidth',2*thisW(x,y),'Color','b');
+                end
+            end
+        end
+        
+        pause
+        close(h);
+    end
 end
 
 %     drawnow;

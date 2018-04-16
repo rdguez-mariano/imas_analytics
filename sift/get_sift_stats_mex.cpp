@@ -1,4 +1,7 @@
+#ifndef _NOMEX
 #include "mex.h"
+#endif
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -14,6 +17,224 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include <opencv2/xfeatures2d.hpp>
 #include "opencv2/flann/miniflann.hpp"
+
+template<class T>
+struct ClusterNode;
+
+template<class T>
+struct KpNode
+{
+  KpNode<T>* next;
+  //KpNode* next;
+  ClusterNode<T>* membership;
+  T data; //this was my kp_id
+  KpNode(const T &x);
+  ~KpNode();
+  static void UpdateMembership(KpNode<T>* k,ClusterNode<T>* c);
+private:
+  KpNode();
+};
+
+template<class T>
+struct ClusterNode
+{
+  int number_of_KpNodes;
+  KpNode<T>* first_Kp;
+  KpNode<T>* last_Kp;
+  ClusterNode<T>* next;
+  ClusterNode<T>* prev;
+  ClusterNode(KpNode<T>* Kp);
+  ~ClusterNode();
+
+  ClusterNode(); // don't use this constructor -> only for first cluster node
+};
+
+template<class T>
+ClusterNode<T>::~ClusterNode()
+{
+  if (first_Kp!=0)
+    delete first_Kp;
+  if (next!=0)
+    delete next;
+}
+
+template<class T>
+ClusterNode<T>::ClusterNode()
+{
+  number_of_KpNodes = 0;
+  next = 0;
+  prev = 0;
+  first_Kp = 0;
+  last_Kp = 0;
+}
+
+template<class T>
+ClusterNode<T>::ClusterNode(KpNode<T>* Kp)
+:number_of_KpNodes(1)
+{
+  next = 0;
+  prev = 0;
+  first_Kp = Kp;
+  last_Kp = Kp;
+  Kp->membership = this;
+}
+
+template<class T>
+KpNode<T>::KpNode(const T &x)
+:data(x)
+{
+  next = 0;
+}
+
+template<class T>
+KpNode<T>::~KpNode()
+{
+  if (next!=0)
+  delete next;
+}
+
+
+template<class T>
+void KpNode<T>::UpdateMembership(KpNode<T>* k, ClusterNode<T>* c)
+{
+  if(k->membership!=0)
+  {
+    k->membership->first_Kp = 0;
+    k->membership->last_Kp = 0;
+  }
+  KpNode<T> * current = k;
+  do
+  {
+    current->membership = c;
+    current = current->next;
+  }
+  while(current!=0);
+}
+
+
+class irr_classes
+{
+public:
+  int number_of_clusters;
+  ClusterNode<int>* first_cluster;
+  ClusterNode<int>* last_cluster;
+  bool search_id(int kp_id, KpNode<int>** n);
+  void add_singleton_cluster(int kp_id);
+  void Merge(ClusterNode<int>* c1, ClusterNode<int>* c2);
+  void PrintCluster();
+  irr_classes();
+
+  // linked by the same id
+  std::vector<int> id_in;
+  std::vector<KpNode<int>*> nodes;
+};
+
+void irr_classes::PrintCluster()
+{
+  int ClusterCount = 0;
+  ClusterNode<int>* current_cluster = first_cluster;
+  do {
+    std::cout<<" Cluster id = "<<ClusterCount<<", N. Nodes = "<<current_cluster->number_of_KpNodes<<std::endl<<"{";
+    KpNode<int>* current_node = current_cluster->first_Kp;
+
+    while(current_node!=0)
+    {
+      std::cout<<"  "<<current_node->data;
+      current_node = current_node->next;
+    }
+    std::cout<<"}"<<std::endl;
+    current_cluster = current_cluster->next;
+    ClusterCount++;
+  }
+  while(current_cluster!=0);
+}
+
+void irr_classes::Merge(ClusterNode<int>* c1, ClusterNode<int>* c2)
+{
+  if (c1!=c2)
+  {
+    // c1 is supposed to have more elements that c2
+    if (c1->number_of_KpNodes<c2->number_of_KpNodes)
+    {
+      ClusterNode<int>* temp = c2;
+      c2 = c1;
+      c1 = temp;
+    }
+
+    if (c1->last_Kp==0)
+    {
+      std::cout<<"not supposed to happed this / number of inner nodes = "<<c1->number_of_KpNodes<<std::endl;
+    }
+    c1->last_Kp->next = c2->first_Kp;
+    c1->last_Kp = c2->last_Kp;
+    c1->number_of_KpNodes += c2->number_of_KpNodes;
+    //std::cout<<"entering UpdateMembership "<<std::endl;
+    if ((c2==last_cluster)&&(c2->prev!=0))
+      last_cluster=c2->prev;
+    KpNode<int>::UpdateMembership(c2->first_Kp,c1);
+    if(c2->prev!=0)
+    c2->prev->next = c2->next;
+    if(c2->next!=0)
+    c2->next->prev = c2->prev;
+    c2->next = 0;
+    c2->prev = 0;
+    delete c2;
+  }
+}
+
+
+irr_classes::irr_classes()
+{
+  number_of_clusters = 0;
+  id_in.clear();
+  nodes.clear();
+  first_cluster = new ClusterNode<int>();
+  last_cluster = first_cluster;
+}
+
+void irr_classes::add_singleton_cluster(int kp_id)
+{
+  KpNode<int>* newKp = new KpNode<int>(kp_id);
+  //std::cout << kp_id<<std::endl;
+  ClusterNode<int>* newCluster = new ClusterNode<int>(newKp);
+  if (last_cluster != 0)
+  {
+    last_cluster->next = newCluster;
+    newCluster->prev = last_cluster;
+    last_cluster = newCluster;
+  }
+  else
+  {
+    std::cout<<"You're not supposed to use it without a the first cluster node"<<std::endl;
+  }
+  id_in.push_back(kp_id);
+  nodes.push_back(newKp);
+}
+
+bool irr_classes::search_id(int kp_id, KpNode<int>** n)
+{
+  ClusterNode<int>* current_cluster = first_cluster;
+  do {
+    KpNode<int>* current_node = current_cluster->first_Kp;
+    while(current_node!=0)
+    {
+      if (current_node->data ==kp_id)
+      {
+        *n = current_node;
+        return(true);
+      }
+      current_node = current_node->next;
+    }
+    current_cluster = current_cluster->next;
+  }
+  while(current_cluster!=0);
+
+  //if here, it means kp_id wasn't found
+  return(false);
+}
+
+
+
 
 
 struct keypoint_simple {
@@ -47,19 +268,33 @@ static inline void unpackOctave(const cv::KeyPoint& kpt, int& octave, int& layer
   scale = octave >= 0 ? 1.f/(1 << octave) : (float)(1 << -octave);
 }
 
-
+#ifdef _NOMEX
+#include <string>
+int main(int argc, char **argv)
+  {
+    /* matrices d'entrée*/
+    std::string s1(argv[1]);
+    std::string s2(argv[2]);
+    cv::Mat queryImg = cv::imread(s1, CV_LOAD_IMAGE_GRAYSCALE );
+    cv::Mat acImg = cv::imread(s2, CV_LOAD_IMAGE_GRAYSCALE );
+#else
 // Fonction principale (gère la liaison avec Matlab)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
   const mxArray *prhs[])
   {
     /* matrices d'entrée*/
     long w1,h1,wac,hac;  // W = number of rows, H = number of columns
+
     w1 = mxGetM(prhs[0]);
     h1 = mxGetN(prhs[0]);
     double* ipixels1 = mxGetPr(prhs[0]);
     wac = mxGetM(prhs[1]);
     hac = mxGetN(prhs[1]);
     double* ipixelsac = mxGetPr(prhs[1]);
+    cv::Mat queryImg,acImg;
+    floatarray2opencvimage(ipixels1,queryImg,w1,h1);
+    floatarray2opencvimage(ipixelsac,acImg,wac,hac);
+#endif
 
 
     int nthreads, maxthreads;
@@ -74,13 +309,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
     }
     std::cout<<"--> Using "<<nthreads<<" threads out of "<<maxthreads<<" <--"<<std::endl;
 
+#ifndef _NOMEX
     double matchratio = (double) mxGetScalar(prhs[2]);
     int thr_same_kp = (int) mxGetScalar(prhs[3]);
-    
-    cv::Mat queryImg,acImg;
-    floatarray2opencvimage(ipixels1,queryImg,w1,h1);
-    floatarray2opencvimage(ipixelsac,acImg,wac,hac);
-
+#else
+    double matchratio = atof(argv[3]);
+    int thr_same_kp = atoi(argv[4]);
+#endif
     cv::Ptr<cv::FeatureDetector> detector = cv::xfeatures2d::SIFT::create();
     cv::Ptr<cv::DescriptorExtractor> extractor = cv::xfeatures2d::SIFT::create();
 
@@ -124,8 +359,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
     double	dsq, distsq1;
     matchingslist matchings;
     std::vector<double> ac_distance;
-    std::vector<int> id_in;
-    #pragma omp parallel for shared(matchings,ac_distance,id_in,klist,dlist,klistac,dlistac) private(dsq,distsq1)  schedule(static)
+    irr_classes * iclasses = new irr_classes();
+    #pragma omp parallel for shared(matchings,ac_distance,iclasses,klist,dlist,klistac,dlistac) private(dsq,distsq1)  schedule(static)
     for (int i=0; i< (int) klist.size(); i++)
     {
       // minimal distance to the a-contrario descriptors
@@ -192,27 +427,38 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
                 //add new id to id_in to build the similarity matrix
 
                 int i_surr=i, j_surr=j;
+                int ind_i = -1, ind_j = -1;
                 bool i_id=false,j_id=false;
-                for (int m=0;m<id_in.size();m++)
+                for (int m=0;m<iclasses->id_in.size();m++)
                 {
-                  if(cv::norm(klist[id_in[m]].pt-klist[i].pt)<thr_same_kp)
+                  if(cv::norm(klist[iclasses->id_in[m]].pt-klist[i].pt)<thr_same_kp)
                   {
                     i_id = true;
-                    i_surr = id_in[m];
+                    i_surr = iclasses->id_in[m];
+                    ind_i = m;
                   }
-                  if(cv::norm(klist[id_in[m]].pt-klist[j].pt)<thr_same_kp)
+                  if(cv::norm(klist[iclasses->id_in[m]].pt-klist[j].pt)<thr_same_kp)
                   {
                     j_id = true;
-                    j_surr = id_in[m];
+                    j_surr = iclasses->id_in[m];
+                    ind_j = m;
                   }
                 }
                 if (!i_id)
-                id_in.push_back(i_surr);
+                {
+                  iclasses->add_singleton_cluster(i_surr);
+                  ind_i = iclasses->id_in.size()-1;
+                }
                 if (!j_id)
-                id_in.push_back(j_surr);
+                {
+                  iclasses->add_singleton_cluster(j_surr);
+                  ind_j = iclasses->id_in.size()-1;
+                }
 
                 k1.id = i_surr;
                 k2.id = j_surr;
+
+                iclasses->Merge(iclasses->nodes[ind_i]->membership,iclasses->nodes[ind_j]->membership);
 
                 matchings.push_back( matching(k1,k2) );
                 ac_distance.push_back(dsq/distsq1);
@@ -223,6 +469,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
       }
     }
 
+#ifndef _NOMEX
     // dense keypoints Matrix
     int wo = 7;
     plhs[0] = mxCreateDoubleMatrix(wo, klist.size(), mxREAL);
@@ -271,25 +518,25 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
       data[i*wo+16]= ac_distance[i];
     }
 
-    // Similarity matrix and vector of its representants
-    wo = id_in.size();
+    // Similarity matrix and vector of representants
+    wo = iclasses->id_in.size();
     int wo_kp = 3;
     plhs[2] = mxCreateDoubleMatrix(wo, wo, mxREAL);
     plhs[3] = mxCreateDoubleMatrix(wo_kp, wo, mxREAL);
     data = mxGetPr(plhs[2]);
     double *data_kp = mxGetPr(plhs[3]);
     for ( int i = 0; i < (int) wo*wo; i++)
-      data[0] = 0;
+    data[0] = 0;
     for ( int i = 0; i < (int) wo*wo_kp; i++)
-      data_kp[0] = 0;
+    data_kp[0] = 0;
 
     for ( int i = 0; i < (int) matchings.size(); i++)
     {
       int ind_1, ind_2;
       bool found1=false,found2=false;
-      for(ind_1=0;ind_1<id_in.size();ind_1++)
+      for(ind_1=0;ind_1<iclasses->id_in.size();ind_1++)
       {
-        if(id_in[ind_1]==matchings[i].first.id)
+        if(iclasses->id_in[ind_1]==matchings[i].first.id)
         {
           found1 = true;
           if(data_kp[ind_1*wo_kp+0]==0)
@@ -301,9 +548,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
           break;
         }
       }
-      for(ind_2=0;ind_2<id_in.size();ind_2++)
+      for(ind_2=0;ind_2<iclasses->id_in.size();ind_2++)
       {
-        if(id_in[ind_2]==matchings[i].second.id)
+        if(iclasses->id_in[ind_2]==matchings[i].second.id)
         {
           found2 = true;
           if(data_kp[ind_2*wo_kp+0]==0)
@@ -325,12 +572,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
       {
         std::cout<<"error: found1="<<found1<<", found2="<<found2<<std::endl;
         std::cout<<matchings[i].first.id<<" and "<<matchings[i].second.id<<" are not among the following"<<std::endl;
-        for(ind_1=0;ind_1<id_in.size();ind_1++)
-        std::cout<<id_in[ind_1]<<std::endl;
+        for(ind_1=0;ind_1<iclasses->id_in.size();ind_1++)
+        std::cout<<iclasses->id_in[ind_1]<<std::endl;
 
         return;
       }
     }
-
+#else
+      iclasses->PrintCluster();
+#endif
 
   }

@@ -72,9 +72,9 @@ subplot(2,2,4);imshow(Ui>0);title({['Imaginary part of the eigenvector matrix'];
 tic;
 U = real(U);
 if strcmp(laplacian, 'sym')
-   U = U./repmat(sum(U,2),1,size(U,2));
+   U = U./repmat(sqrt(sum(U.^2,2)),1,size(U,2));
 end
-if ( max(abs(sum(U,2)-1))<=0.000001 )
+if ( max(abs(sqrt(sum(U.^2,2))-1))<=0.000001 )
     disp('Eigenvector matrix with normalised rows !')
 else
     disp('Eigenvector matrix with non-normalised rows !')

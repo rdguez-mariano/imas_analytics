@@ -3,3 +3,4 @@ siim-matcher
 *.mex*
 *.txt.user*
 /textures/*
+sift/build
