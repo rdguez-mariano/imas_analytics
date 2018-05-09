@@ -39,6 +39,7 @@ template<class T>
 struct ClusterNode
 {
   int number_of_KpNodes;
+  int ClusterId;
   KpNode<T>* first_Kp;
   KpNode<T>* last_Kp;
   ClusterNode<T>* next;
@@ -66,6 +67,7 @@ ClusterNode<T>::ClusterNode()
   prev = 0;
   first_Kp = 0;
   last_Kp = 0;
+  ClusterId = -1;
 }
 
 template<class T>
@@ -77,6 +79,7 @@ ClusterNode<T>::ClusterNode(KpNode<T>* Kp)
   first_Kp = Kp;
   last_Kp = Kp;
   Kp->membership = this;
+  ClusterId = -1;
 }
 
 template<class T>
@@ -115,13 +118,13 @@ void KpNode<T>::UpdateMembership(KpNode<T>* k, ClusterNode<T>* c)
 class irr_classes
 {
 public:
-  int number_of_clusters;
   ClusterNode<int>* first_cluster;
   ClusterNode<int>* last_cluster;
   bool search_id(int kp_id, KpNode<int>** n);
   void add_singleton_cluster(int kp_id);
   void Merge(ClusterNode<int>* c1, ClusterNode<int>* c2);
-  void PrintCluster();
+  void CreateClustersId();
+  void PrintClusters(bool showstats, int showstats_mingroup,int showstats_maxgroup,bool verbose);
   irr_classes();
 
   // linked by the same id
@@ -129,24 +132,55 @@ public:
   std::vector<KpNode<int>*> nodes;
 };
 
-void irr_classes::PrintCluster()
+void irr_classes::CreateClustersId()
 {
   int ClusterCount = 0;
+
   ClusterNode<int>* current_cluster = first_cluster;
   do {
-    std::cout<<" Cluster id = "<<ClusterCount<<", N. Nodes = "<<current_cluster->number_of_KpNodes<<std::endl<<"{";
+    current_cluster->ClusterId = ClusterCount++;
+    current_cluster = current_cluster->next;
+  }
+  while(current_cluster!=0);
+}
+
+void irr_classes::PrintClusters(bool showstats, int showstats_mingroup,int showstats_maxgroup,bool verbose)
+{
+  int ClusterCount = 0;
+  const int topcount = showstats_maxgroup+1;
+  int* countgroups = new int[topcount];
+  for (int i=0;i<topcount;i++)
+    countgroups[i] = 0;
+
+  ClusterNode<int>* current_cluster = first_cluster;
+  do {
+    if (verbose)
+      std::cout<<" Cluster id = "<<ClusterCount<<", N. Nodes = "<<current_cluster->number_of_KpNodes<<std::endl<<"  {";
+    if (current_cluster->number_of_KpNodes<topcount)
+        countgroups[current_cluster->number_of_KpNodes]++;
     KpNode<int>* current_node = current_cluster->first_Kp;
 
     while(current_node!=0)
     {
-      std::cout<<"  "<<current_node->data;
+      //std::cout<<"   (N_id="<<current_node->data<<", C_id"<<current_node->membership->ClusterId;
+      if (verbose)
+        std::cout<<"   N_id="<<current_node->data;
       current_node = current_node->next;
     }
-    std::cout<<"}"<<std::endl;
+    if (verbose)
+      std::cout<<"  }"<<std::endl;
     current_cluster = current_cluster->next;
     ClusterCount++;
   }
   while(current_cluster!=0);
+
+  if (showstats)
+  {
+    std::cout<<std::endl<<"Number of clusters for fixed C cardinalities ( "<<showstats_mingroup<<" <= C <= "<<showstats_maxgroup<<" )"<<std::endl;
+    for (int i=showstats_mingroup;i<topcount;i++)
+      if(countgroups[i]>0)
+        std::cout<<"   C = "<<i<<" --> Number of Clusters = "<<countgroups[i]<<std::endl;
+  }
 }
 
 void irr_classes::Merge(ClusterNode<int>* c1, ClusterNode<int>* c2)
@@ -185,7 +219,6 @@ void irr_classes::Merge(ClusterNode<int>* c1, ClusterNode<int>* c2)
 
 irr_classes::irr_classes()
 {
-  number_of_clusters = 0;
   id_in.clear();
   nodes.clear();
   first_cluster = new ClusterNode<int>();
@@ -468,8 +501,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
         }
       }
     }
+    iclasses->CreateClustersId();
 
 #ifndef _NOMEX
+    iclasses->PrintClusters(true,1,100,false);
     // dense keypoints Matrix
     int wo = 7;
     plhs[0] = mxCreateDoubleMatrix(wo, klist.size(), mxREAL);
@@ -520,7 +555,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
 
     // Similarity matrix and vector of representants
     wo = iclasses->id_in.size();
-    int wo_kp = 3;
+    int wo_kp = 4;
     plhs[2] = mxCreateDoubleMatrix(wo, wo, mxREAL);
     plhs[3] = mxCreateDoubleMatrix(wo_kp, wo, mxREAL);
     data = mxGetPr(plhs[2]);
@@ -544,6 +579,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
             data_kp[ind_1*wo_kp+0]=matchings[i].first.pt.x;
             data_kp[ind_1*wo_kp+1]=matchings[i].first.pt.y;
             data_kp[ind_1*wo_kp+2]= (double)matchings[i].first.id;
+            data_kp[ind_1*wo_kp+3]= (double)iclasses->nodes[ind_1]->membership->ClusterId;
           }
           break;
         }
@@ -558,6 +594,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
             data_kp[ind_2*wo_kp+0]=matchings[i].second.pt.x;
             data_kp[ind_2*wo_kp+1]=matchings[i].second.pt.y;
             data_kp[ind_2*wo_kp+2]=(double)matchings[i].second.id;
+            data_kp[ind_2*wo_kp+3]= (double)iclasses->nodes[ind_2]->membership->ClusterId;
           }
           break;
         }
@@ -579,7 +616,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
       }
     }
 #else
-      iclasses->PrintCluster();
+      iclasses->PrintClusters(true,1,100,true);
 #endif
 
   }
