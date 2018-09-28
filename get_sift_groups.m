@@ -119,10 +119,13 @@ chosen_eig_indices=1:k;
 if (visual)
     figure;
     subplot(2,2,1);plot(chosen_eig_indices,abs(eigenvalues_sorted(chosen_eig_indices)),'*b');title('Chosen eigenvalues')
-    subplot(2,2,2);plot(1:size(eigenvalues_sorted,1),abs(eigenvalues_sorted),'*b');title('All eigenvalues')
+    %subplot(2,2,2);plot(1:size(eigenvalues_sorted,1),abs(eigenvalues_sorted),'*b');title('All eigenvalues')
+    subplot(2,2,2);plot(diff(diff(abs(eigenvalues_sorted(chosen_eig_indices)))),'*b');title('2nd derivate')
     eshowmin = max(k-10,1);
     eshowmax = min(k+10,size(eigenvalues_sorted,1));
     subplot(2,2,3);plot((eshowmin:eshowmax) - k,abs(eigenvalues_sorted(eshowmin:eshowmax)),'*b');title('Last chosen eigenvalue on the origin')
+    subplot(2,2,4);plot(diff(abs(eigenvalues_sorted(chosen_eig_indices))),'*b');title('derivate')
+    
 end
 U = U(:,reorder(chosen_eig_indices));
 if (visual)

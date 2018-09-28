@@ -3,7 +3,7 @@ if (size(im_ac, 3) ~= 1)
     im_ac = sum(im_ac,3)/3;
 end
 
-listing = dir('textures/*.png');
+listing = dir('textures/coca.png');
 for f=1:1%length(listing)
     
     im1 = double(imread(['./textures/' listing(f).name]));
@@ -24,7 +24,12 @@ for f=1:1%length(listing)
         Nconn_0 = N*(N+1)/2 - N; %max number of connections between N elements
         Nconn_1 = N_1*(N_1+1)/2 - N_1; %%max number of connections between N-1 elements
         if (N>4)
-            [ thisY,newthisW, newthisvec, newArr] = get_sift_groups(thisW,thisvec,'sym');
+            % Spectral Clustering groups
+            %[ thisY,newthisW, newthisvec, newArr] = get_sift_groups(thisW,thisvec,'sym');
+            
+            % Fully connected groups
+            [ thisY,newthisW, newthisvec, newArr] = get_sift_fullconn_groups(thisW,thisvec);
+            
             subclasses = unique(thisY);
             
             if (length(newArr)>1)

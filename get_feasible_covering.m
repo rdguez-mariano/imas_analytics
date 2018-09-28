@@ -4,7 +4,7 @@ function [ TVEC1, PSICELL1, REGION ] = get_feasible_covering( radius )
 
 switch radius
     case 1.4
-        [TVEC1,PSICELL1,~,~] = covering_asift_next2optimal2(1.4,2); REGION = 5;
+        t1=1.7745; phi1=0.525449; t2=2.38807; phi2=0.286394; t3 = 3.91568; phi3 =0.14296; REGION = 4.4;        
     case 1.55
         t1=2.28479; phi1=0.318792; t2=4.63662; phi2=0.16015; REGION=5.5;
     case 1.6
@@ -25,7 +25,7 @@ end
 
 
 
-if (radius~=1.4)
+
     TVEC1 = [1];
     PSICELL1 = {[0]};
     
@@ -36,5 +36,11 @@ if (radius~=1.4)
     TVEC1 = [TVEC1 t2];
     theta = 0:phi2:(pi);
     PSICELL1 = [PSICELL1 theta]; 
+    
+if (radius==1.4)
+    TVEC1 = [TVEC1 t3];
+    theta = 0:phi3:(pi);
+    PSICELL1 = [PSICELL1 theta]; 
 end
+
 end

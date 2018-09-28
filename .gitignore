@@ -4,3 +4,4 @@ siim-matcher
 *.txt.user*
 /textures/*
 sift/build
+tmp*

@@ -98,7 +98,7 @@ for DESC=DESCVEC
         end
         
     else
-        opts_IMAS.applyfilter = 2;
+        opts_IMAS.applyfilter = 0;
         opts_IMAS.showon = false;
         switch DESC
             case 1 % SIFT L1 0.8

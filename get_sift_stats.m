@@ -5,7 +5,7 @@ function [ kp_stats,similarities,W,vec_representants ] = get_sift_stats( im1,im_
 % Matlab handles differently images with respect to the c++ code!
 % We need to use the image transpose instead
 
-ALWAYS_COMPILE = false;
+ALWAYS_COMPILE = true;
 
 
 setenv('OMP_NUM_THREADS', '8'); % use 4 threads for computing

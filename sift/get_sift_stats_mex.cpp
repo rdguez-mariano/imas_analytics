@@ -301,6 +301,11 @@ static inline void unpackOctave(const cv::KeyPoint& kpt, int& octave, int& layer
   scale = octave >= 0 ? 1.f/(1 << octave) : (float)(1 << -octave);
 }
 
+
+const int draw_shift_bits = 4;
+const int draw_multiplier = 1 << draw_shift_bits;
+
+
 #ifdef _NOMEX
 #include <string>
 int main(int argc, char **argv)
@@ -435,7 +440,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
                 cv::KeyPoint* kp = & klist[i];
                 int octave, layer;
                 float scale;
+                //int radius = std::round(kp->size/2 * draw_multiplier); // KeyPoint::size is a diameter
                 unpackOctave(*kp, octave, layer, scale);
+
 
                 keypoint_simple k1, k2;
 
@@ -449,6 +456,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
 
                 kp = & klist[j];
                 unpackOctave(*kp, octave, layer, scale);
+                //radius = std::round(kp->size/2 * draw_multiplier); // KeyPoint::size is a diameter
 
                 k2.pt = kp->pt;
                 k2.size = (double) kp->size;
@@ -555,7 +563,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
 
     // Similarity matrix and vector of representants
     wo = iclasses->id_in.size();
-    int wo_kp = 4;
+    int wo_kp = 7;
     plhs[2] = mxCreateDoubleMatrix(wo, wo, mxREAL);
     plhs[3] = mxCreateDoubleMatrix(wo_kp, wo, mxREAL);
     data = mxGetPr(plhs[2]);
@@ -580,6 +588,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
             data_kp[ind_1*wo_kp+1]=matchings[i].first.pt.y;
             data_kp[ind_1*wo_kp+2]= (double)matchings[i].first.id;
             data_kp[ind_1*wo_kp+3]= (double)iclasses->nodes[ind_1]->membership->ClusterId;
+            data_kp[ind_1*wo_kp+4]= (double)matchings[i].first.size;
+            data_kp[ind_1*wo_kp+5]= (double)matchings[i].first.octave;
+            data_kp[ind_1*wo_kp+6]= (double)matchings[i].first.scale;
           }
           break;
         }
@@ -595,6 +606,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
             data_kp[ind_2*wo_kp+1]=matchings[i].second.pt.y;
             data_kp[ind_2*wo_kp+2]=(double)matchings[i].second.id;
             data_kp[ind_2*wo_kp+3]= (double)iclasses->nodes[ind_2]->membership->ClusterId;
+            data_kp[ind_2*wo_kp+4]=(double)matchings[i].second.size;
+            data_kp[ind_2*wo_kp+5]=(double)matchings[i].second.octave;
+            data_kp[ind_2*wo_kp+6]=(double)matchings[i].second.scale;
           }
           break;
         }
